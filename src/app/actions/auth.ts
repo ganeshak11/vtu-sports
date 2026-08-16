@@ -1,0 +1,123 @@
+'use server';
+
+import { redirect } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { getSession, destroySession } from '@/lib/session';
+
+export async function loginWithId(formData: FormData) {
+  const userId = formData.get('userId') as string;
+  
+  if (!userId) {
+    return { error: 'Please enter a valid ID.' };
+  }
+
+  const cleanId = userId.trim().toUpperCase();
+
+  // 1. Check if it's an Event Official PIN
+  const { data: eventData } = await supabase
+    .from('events')
+    .select('id, name')
+    .eq('official_pin', cleanId)
+    .maybeSingle();
+
+  if (eventData) {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'official';
+    session.eventId = eventData.id;
+    session.eventName = eventData.name;
+    await session.save();
+    redirect('/referee');
+  }
+
+  // 2. Check if it's a Warden PIN
+  const { data: accData } = await supabase
+    .from('accommodations')
+    .select('id, name')
+    .eq('warden_pin', cleanId)
+    .maybeSingle();
+
+  if (accData) {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'warden';
+    session.accommodationId = accData.id;
+    session.accommodationName = accData.name;
+    await session.save();
+    redirect('/warden');
+  }
+
+  // 3. Check if it's a Food Volunteer PIN
+  const { data: foodData } = await supabase
+    .from('food_counters')
+    .select('id, name')
+    .eq('volunteer_pin', cleanId)
+    .maybeSingle();
+
+  if (foodData) {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'food_volunteer';
+    session.counterId = foodData.id;
+    session.counterName = foodData.name;
+    await session.save();
+    redirect('/volunteer');
+  }
+
+  // 4. Check if it's an Athlete profile (by chest number)
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, role, chest_number')
+    .eq('chest_number', cleanId)
+    .maybeSingle();
+
+  if (error || !profile) {
+    return { error: 'Invalid ID or Event PIN.' };
+  }
+
+  if (profile.role === 'admin') {
+    return { error: 'Admins must log in through the Admin Portal.' };
+  }
+
+  const session = await getSession();
+  session.id = profile.chest_number || cleanId;
+  session.role = 'athlete';
+  session.profileId = profile.id;
+  await session.save();
+
+  redirect('/athlete');
+}
+
+export async function adminLogin(formData: FormData) {
+  const adminId = formData.get('adminId') as string;
+  
+  if (!adminId) {
+    return { error: 'Please enter a valid Admin ID.' };
+  }
+
+  const cleanId = adminId.trim().toUpperCase();
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, role, chest_number')
+    .eq('chest_number', cleanId)
+    .eq('role', 'admin')
+    .maybeSingle();
+
+  if (error || !profile) {
+    return { error: 'Invalid Admin Credentials.' };
+  }
+
+  const session = await getSession();
+  session.id = profile.chest_number;
+  session.role = 'admin';
+  session.profileId = profile.id;
+  await session.save();
+
+  redirect('/admin');
+}
+
+export async function logout() {
+  await destroySession();
+  redirect('/login');
+}
