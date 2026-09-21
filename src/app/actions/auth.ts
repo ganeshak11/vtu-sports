@@ -13,6 +13,34 @@ export async function loginWithId(formData: FormData) {
 
   const cleanId = userId.trim().toUpperCase();
 
+  // Quick Prototype / Dev PIN shortcuts
+  if (cleanId === '2345' || cleanId === 'WARDEN') {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'warden';
+    session.accommodationName = 'Dr. ACSCE Campus Hostels';
+    await session.save();
+    redirect('/warden');
+  }
+
+  if (cleanId === '1234' || cleanId === 'OFFICIAL') {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'official';
+    session.eventName = 'Call Room Marshalling Desk';
+    await session.save();
+    redirect('/referee');
+  }
+
+  if (cleanId === '3456' || cleanId === 'FOOD') {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'food_volunteer';
+    session.counterName = 'Central Canteen Counter';
+    await session.save();
+    redirect('/volunteer');
+  }
+
   // 1. Check if it's an Event Official PIN
   const { data: eventData } = await supabase
     .from('events')

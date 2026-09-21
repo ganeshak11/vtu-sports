@@ -11,7 +11,7 @@ export default async function WardenLayout({
 }) {
   const session = await getSession();
 
-  if (!session.id || session.role !== 'warden') {
+  if (!session.id || (session.role !== 'warden' && session.role !== 'admin')) {
     redirect('/login');
   }
 
