@@ -49,12 +49,12 @@ export async function generateHeats(eventId: string) {
   }
   const roundId = rounds[0].id;
 
-  // 3. Fetch all registered athletes with their colleges
+  // 3. Fetch all registered athletes with their profiles
   const { data: registrations, error: regError } = await supabase
     .from('event_registrations')
     .select(`
       athlete_id,
-      profiles ( college_name )
+      profiles ( college_name, accreditation_status, payment_status )
     `)
     .eq('event_id', eventId);
 
@@ -62,9 +62,21 @@ export async function generateHeats(eventId: string) {
     return { error: 'No athletes registered for this event.' };
   }
 
+  // Strictly filter only ACCREDITED athletes
+  const eligibleRegistrations = registrations.filter(r => {
+    const prof = r.profiles as any;
+    return prof?.accreditation_status === 'ACCREDITED' && prof?.payment_status === 'CONFIRMED';
+  });
+
+  if (eligibleRegistrations.length === 0) {
+    return { 
+      error: 'No ACCREDITED athletes found for this event. Athletes must be verified & marked as ACCREDITED at the Accreditation Desk (/admin/accreditation) before heats can be seeded.' 
+    };
+  }
+
   // Group by college
   const collegeMap: Record<string, string[]> = {};
-  registrations.forEach(r => {
+  eligibleRegistrations.forEach(r => {
     const athId = r.athlete_id;
     const colName = (r.profiles as any)?.college_name || 'Unknown';
     if (!collegeMap[colName]) collegeMap[colName] = [];
@@ -75,7 +87,7 @@ export async function generateHeats(eventId: string) {
   const sortedColleges = Object.keys(collegeMap).sort((a, b) => collegeMap[b].length - collegeMap[a].length);
 
   // 4. Calculate total heats (max 8 per heat)
-  const totalAthletes = registrations.length;
+  const totalAthletes = eligibleRegistrations.length;
   const totalHeats = Math.ceil(totalAthletes / 8);
 
   if (totalHeats === 0) return { error: 'No athletes to generate heats for.' };
@@ -162,7 +174,8 @@ export async function generateHeats(eventId: string) {
         event_id: eventId,
         heat_id: heat.id,
         profile_id: athId,
-        lane_number: lanes[idx]
+        lane_number: lanes[idx],
+        status: 'NOT_REPORTED'
       });
     });
   }

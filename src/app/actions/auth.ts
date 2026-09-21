@@ -64,7 +64,45 @@ export async function loginWithId(formData: FormData) {
     redirect('/volunteer');
   }
 
-  // 4. Check if it's an Athlete profile (by chest number)
+  // 4. Check if it's a College Principal/PED Boys Login Code (e.g. MITM-M)
+  const { data: collegeBoys } = await supabase
+    .from('colleges')
+    .select('id, name, code, boys_login_code')
+    .eq('boys_login_code', cleanId)
+    .maybeSingle();
+
+  if (collegeBoys) {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'principal';
+    session.collegeId = collegeBoys.id;
+    session.collegeName = collegeBoys.name;
+    session.collegeCode = collegeBoys.code;
+    session.targetGender = 'men';
+    await session.save();
+    redirect('/principal');
+  }
+
+  // 5. Check if it's a College Principal/PED Girls Login Code (e.g. MITM-G)
+  const { data: collegeGirls } = await supabase
+    .from('colleges')
+    .select('id, name, code, girls_login_code')
+    .eq('girls_login_code', cleanId)
+    .maybeSingle();
+
+  if (collegeGirls) {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'principal';
+    session.collegeId = collegeGirls.id;
+    session.collegeName = collegeGirls.name;
+    session.collegeCode = collegeGirls.code;
+    session.targetGender = 'women';
+    await session.save();
+    redirect('/principal');
+  }
+
+  // 6. Check if it's an Athlete profile (by chest number or bib number)
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('id, role, chest_number')

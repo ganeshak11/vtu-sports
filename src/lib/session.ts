@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
  */
 export interface SessionData {
   id: string;
-  role: 'admin' | 'athlete' | 'official' | 'warden' | 'food_volunteer';
+  role: 'admin' | 'athlete' | 'official' | 'warden' | 'food_volunteer' | 'principal';
   profileId?: string;
   eventId?: string;
   eventName?: string;
@@ -15,6 +15,10 @@ export interface SessionData {
   accommodationName?: string;
   counterId?: string;
   counterName?: string;
+  collegeId?: string;
+  collegeName?: string;
+  collegeCode?: string;
+  targetGender?: 'men' | 'women';
 }
 
 const SESSION_OPTIONS = {

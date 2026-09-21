@@ -72,7 +72,7 @@ export default function LoginPage() {
                 id="userId"
                 name="userId"
                 type="text"
-                placeholder={activeTab === 'participant' ? "e.g. M1042" : "e.g. OFFICIAL-100M"}
+                placeholder={activeTab === 'participant' ? "e.g. M1042 or W2001" : "e.g. MITM-M, MITM-G, REF123"}
                 required
                 style={{
                   padding: '0.75rem 1rem',
@@ -89,7 +89,7 @@ export default function LoginPage() {
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                 {activeTab === 'participant' 
                   ? 'Athletes: Use your assigned Chest Number (e.g. M1042).'
-                  : 'Referees & Wardens: Use your Event/Hostel PIN.'}
+                  : 'Principals/PED: Enter college code (e.g. MITM-M, MITM-G). Officials: Enter Event/Hostel PIN.'}
               </p>
             </div>
 

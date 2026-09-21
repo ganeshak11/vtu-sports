@@ -1,12 +1,19 @@
 import React from 'react';
+import Link from 'next/link';
 import { StatBox } from '@/components/ui/StatBox';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/Badge';
-import Link from 'next/link';
+import RegistrationControlWidget from '@/components/admin/RegistrationControlWidget';
 
 export default async function AdminDashboard() {
+  // 0. Meet Settings
+  const { data: settings } = await supabase
+    .from('meet_settings')
+    .select('registration_status, registration_closed_at, host_college_name')
+    .maybeSingle();
+
   // 1. Total Athletes
   const { count: totalAthletes } = await supabase
     .from('profiles')
@@ -42,22 +49,36 @@ export default async function AdminDashboard() {
   // 5. Recent Registrations
   const { data: recentRegistrations } = await supabase
     .from('profiles')
-    .select('id, full_name, chest_number, college_name, arrival_status')
+    .select('id, full_name, sslc_name, chest_number, bib_number, college_name, accreditation_status')
     .eq('role', 'athlete')
     .order('created_at', { ascending: false })
     .limit(5);
 
   return (
-    <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>Event Control Center</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Overview of VTU Athletics Meet Operations</p>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>Event Control Center</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            Dr. ACS College of Engineering &bull; VTU Athletics Meet 2026 Operations
+          </p>
         </div>
-        <Link href="/admin/events">
-          <Button variant="primary">Manage Events</Button>
-        </Link>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <Link href="/admin/accreditation">
+            <Button variant="secondary">🎟️ Accreditation Desk</Button>
+          </Link>
+          <Link href="/admin/events">
+            <Button variant="primary">Manage Events</Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Registration & Bib Control Widget */}
+      <RegistrationControlWidget
+        initialStatus={settings?.registration_status || 'OPEN'}
+        closedAt={settings?.registration_closed_at || null}
+        hostCollege={settings?.host_college_name || 'Dr. ACS College of Engineering'}
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
         <StatBox 
@@ -103,15 +124,13 @@ export default async function AdminDashboard() {
               ) : (
                 recentRegistrations.map(athlete => (
                   <div key={athlete.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                    <span>{athlete.full_name} ({athlete.chest_number})</span>
+                    <span>{athlete.full_name || athlete.sslc_name || 'Athlete'} {athlete.bib_number ? `(#${athlete.bib_number})` : ''}</span>
                     <span style={{ color: 'var(--text-secondary)' }}>{athlete.college_name || 'N/A'}</span>
                     <span>
-                      {athlete.arrival_status === 'arrived' ? (
-                         <Badge variant="success">Arrived</Badge>
-                      ) : athlete.arrival_status === 'on_transit' ? (
-                         <Badge variant="warning">In Transit</Badge>
+                      {athlete.accreditation_status === 'ACCREDITED' ? (
+                         <Badge variant="success">Accredited</Badge>
                       ) : (
-                         <Badge variant="default">Not Started</Badge>
+                         <Badge variant="default">Registered</Badge>
                       )}
                     </span>
                   </div>

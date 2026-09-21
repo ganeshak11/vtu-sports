@@ -11,7 +11,7 @@ export default async function RefereeLayout({
 }) {
   const session = await getSession();
 
-  if (!session.id || session.role !== 'official') {
+  if (!session.id || (session.role !== 'official' && session.role !== 'admin')) {
     redirect('/login');
   }
 

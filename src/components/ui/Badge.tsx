@@ -6,9 +6,10 @@ interface BadgeProps {
   children: React.ReactNode;
   variant?: BadgeVariant;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
+export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '', style = {} }) => {
   const getVariantStyles = () => {
     switch (variant) {
       case 'success':
@@ -36,7 +37,8 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', cla
         fontWeight: 600,
         letterSpacing: '0.025em',
         textTransform: 'uppercase',
-        ...getVariantStyles()
+        ...getVariantStyles(),
+        ...style
       }}
     >
       {children}

@@ -6,12 +6,15 @@ import './Sidebar.css';
 
 const menuItems = [
   { name: 'Dashboard', path: '/admin' },
-  { name: 'Arrivals Tracker', path: '/admin/arrivals' },
+  { name: 'Accreditation Desk', path: '/admin/accreditation' },
+  { name: 'Printable ID Badges', path: '/admin/id-cards' },
   { name: 'Events', path: '/admin/events' },
   { name: 'Event Scheduler', path: '/admin/events/schedule' },
   { name: 'Heat Generation', path: '/admin/events/heats' },
-  { name: 'Athletes', path: '/admin/athletes' },
+  { name: 'Athletes Management', path: '/admin/athletes' },
   { name: 'Accommodations', path: '/admin/accommodations' },
+  { name: 'Hostel Desk (Warden)', path: '/warden' },
+  { name: 'Canteen Scanner', path: '/volunteer' },
   { name: 'Food Analytics', path: '/admin/food' },
 ];
 
