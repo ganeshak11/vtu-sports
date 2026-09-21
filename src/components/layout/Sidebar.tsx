@@ -5,17 +5,18 @@ import { usePathname } from 'next/navigation';
 import './Sidebar.css';
 
 const menuItems = [
-  { name: 'Dashboard', path: '/admin' },
-  { name: 'Accreditation Desk', path: '/admin/accreditation' },
-  { name: 'Printable ID Badges', path: '/admin/id-cards' },
-  { name: 'Events', path: '/admin/events' },
-  { name: 'Event Scheduler', path: '/admin/events/schedule' },
-  { name: 'Heat Generation', path: '/admin/events/heats' },
-  { name: 'Athletes Management', path: '/admin/athletes' },
-  { name: 'Accommodations', path: '/admin/accommodations' },
-  { name: 'Hostel Desk (Warden)', path: '/warden' },
-  { name: 'Canteen Scanner', path: '/volunteer' },
-  { name: 'Food Analytics', path: '/admin/food' },
+  { name: 'Dashboard', path: '/admin', icon: '📊' },
+  { name: 'Accreditation Desk', path: '/admin/accreditation', icon: '🎫' },
+  { name: 'Printable ID Badges', path: '/admin/id-cards', icon: '🪪' },
+  { name: 'Heat Seeding', path: '/admin/events/heats', icon: '⚡' },
+  { name: 'Events & Schedule', path: '/admin/events/schedule', icon: '📅' },
+  { name: 'Official Results Engine', path: '/referee/results', icon: '⏱️' },
+  { name: 'Call Room Marshalling', path: '/referee', icon: '📋' },
+  { name: 'Athletes Management', path: '/admin/athletes', icon: '🏃' },
+  { name: 'Hostel Desk (Warden)', path: '/warden', icon: '🏢' },
+  { name: 'Canteen Food Scanner', path: '/volunteer', icon: '🍽️' },
+  { name: 'Live Results Feed', path: '/live', icon: '🔴' },
+  { name: 'Championship Leaderboard', path: '/leaderboard', icon: '🏆' },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -23,12 +24,16 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="sidebar glass-panel">
-      <div className="sidebar-header" style={{ padding: '2rem 1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/vtu.png" alt="VTU Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
-          <img src="/mit.png" alt="MIT Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
+      <div className="sidebar-header" style={{ padding: '1.5rem 1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img src="/vtu.png" alt="VTU Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+          <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }}></div>
+          <img src="/acsce-logo.png" alt="Dr. ACSCE Logo" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
         </div>
-        <h2 className="sidebar-title" style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>Admin Hub</h2>
+        <div>
+          <h2 className="sidebar-title" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1 }}>Meet Admin Desk</h2>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Dr. ACSCE Operations</span>
+        </div>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => {
@@ -38,8 +43,10 @@ export const Sidebar: React.FC = () => {
               key={item.name} 
               href={item.path}
               className={`sidebar-link ${isActive ? 'active' : ''} hover-lift`}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}
             >
-              {item.name}
+              <span>{item.icon}</span>
+              <span>{item.name}</span>
             </Link>
           );
         })}

@@ -193,9 +193,10 @@ export default async function LeaderboardPage() {
         zIndex: 50
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <img src="/vtu.png" alt="VTU Logo" style={{ height: '36px', width: 'auto' }} />
-            <img src="/mit.png" alt="ACSCE Logo" style={{ height: '36px', width: 'auto' }} />
+            <div style={{ width: '1px', height: '24px', background: 'var(--border-color)' }}></div>
+            <img src="/acsce-logo.png" alt="Dr. ACSCE Logo" style={{ height: '32px', width: 'auto' }} />
           </div>
           <div>
             <h1 style={{ fontSize: '1.1rem', fontWeight: 800, lineHeight: 1.1 }}>VTU Inter-Collegiate Athletics Meet 2026</h1>

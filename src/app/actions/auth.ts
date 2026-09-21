@@ -32,6 +32,14 @@ export async function loginWithId(formData: FormData) {
     redirect('/referee');
   }
 
+  if (cleanId === 'ADMIN' || cleanId === 'DIRECTOR' || cleanId === 'MEET_DIRECTOR') {
+    const session = await getSession();
+    session.id = cleanId;
+    session.role = 'admin';
+    await session.save();
+    redirect('/admin');
+  }
+
   if (cleanId === '3456' || cleanId === 'FOOD') {
     const session = await getSession();
     session.id = cleanId;
@@ -130,15 +138,15 @@ export async function loginWithId(formData: FormData) {
     redirect('/principal');
   }
 
-  // 6. Check if it's an Athlete profile (by chest number or bib number)
+  // 6. Check if it's an Athlete profile (by bib number, chest number, or USN)
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, role, chest_number')
-    .eq('chest_number', cleanId)
+    .select('id, role, chest_number, bib_number, usn')
+    .or(`chest_number.eq.${cleanId},bib_number.eq.${cleanId},usn.eq.${cleanId}`)
     .maybeSingle();
 
   if (error || !profile) {
-    return { error: 'Invalid ID or Event PIN.' };
+    return { error: 'Invalid ID, College Code, Bib, or PIN.' };
   }
 
   if (profile.role === 'admin') {
@@ -146,7 +154,7 @@ export async function loginWithId(formData: FormData) {
   }
 
   const session = await getSession();
-  session.id = profile.chest_number || cleanId;
+  session.id = profile.bib_number || profile.chest_number || profile.usn || cleanId;
   session.role = 'athlete';
   session.profileId = profile.id;
   await session.save();

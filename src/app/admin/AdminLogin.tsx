@@ -29,10 +29,11 @@ export default function AdminLogin() {
         <CardHeader style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', marginBottom: '1rem' }}>
             <img src="/vtu.png" alt="VTU Logo" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
-            <img src="/mit.png" alt="MIT Logo" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
+            <div style={{ width: '1px', height: '36px', background: 'var(--border-color)' }}></div>
+            <img src="/acsce-logo.png" alt="Dr. ACSCE Logo" style={{ height: '46px', width: 'auto', objectFit: 'contain' }} />
           </div>
-          <CardTitle style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'center' }}>
-            Secure login for Meet Admins
+          <CardTitle style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 600, textAlign: 'center' }}>
+            Dr. ACSCE Meet Administration Desk
           </CardTitle>
         </CardHeader>
         

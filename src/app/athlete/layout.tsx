@@ -33,13 +33,18 @@ export default async function AthleteLayout({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <img src="/vtu.png" alt="VTU Logo" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+          <div style={{ width: '1px', height: '20px', background: 'var(--border-color)' }}></div>
+          <img src="/acsce-crest.jpg" alt="ACSCE Crest" style={{ height: '28px', width: 'auto', borderRadius: '4px', objectFit: 'contain' }} />
           <div>
-            <span style={{ fontSize: '0.9rem', fontWeight: 800, display: 'block', lineHeight: 1.1 }}>VTU SportsOS</span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Host: Dr. ACSCE</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 800, display: 'block', lineHeight: 1.1 }}>VTU SportsOS</span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>Host: Dr. ACSCE</span>
           </div>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Link href="/leaderboard" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-primary)', padding: '0.3rem 0.5rem' }}>
+            🏆 Standings
+          </Link>
           <form action={logout}>
             <button 
               type="submit" 
