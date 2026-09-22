@@ -15,11 +15,12 @@ export default async function RefereeLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)]">
+    <div className="portal-layout">
       <RefereeHeader eventName={session.eventName} />
-      <main className="flex-1 p-4 sm:p-8 max-w-6xl mx-auto w-full">
+      <main className="portal-main-content">
         {children}
       </main>
     </div>
   );
 }
+

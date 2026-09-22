@@ -14,68 +14,75 @@ export const RefereeHeader: React.FC<Props> = ({ eventName }) => {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <header className="desk-header">
       {/* Top Strip */}
-      <div className="bg-slate-900 text-slate-300 text-xs px-6 py-1.5 flex justify-between items-center">
+      <div className="desk-top-strip">
         <span>Dr. ACS College of Engineering &bull; Official Meet Timing & Marshalling System</span>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="hover:text-white transition-colors">🏠 Public Home</Link>
-          <Link href="/live" className="hover:text-white transition-colors">🔴 Live Feed</Link>
-          <Link href="/leaderboard" className="hover:text-white transition-colors">🏆 Standings</Link>
+        <div className="desk-top-links">
+          <Link href="/">🏠 Public Home</Link>
+          <Link href="/live">🔴 Live Feed</Link>
+          <Link href="/leaderboard">🏆 Standings</Link>
         </div>
       </div>
 
       {/* Main Bar */}
-      <div className="px-6 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/vtu.png" alt="VTU" className="h-8 w-auto object-contain" />
-            <div className="h-6 w-px bg-slate-200"></div>
-            <img src="/acsce-logo.png" alt="ACSCE" className="h-8 w-auto object-contain" />
+      <div className="desk-main-bar">
+        <div className="desk-brand-group">
+          <div className="desk-logos">
+            <img 
+              src="/vtu.png" 
+              alt="VTU" 
+              className="desk-logo-vtu" 
+              style={{ height: '34px', width: 'auto', objectFit: 'contain' }} 
+            />
+            <div className="desk-logo-divider" />
+            <img 
+              src="/acsce-logo.png" 
+              alt="ACSCE" 
+              className="desk-logo-acsce" 
+              style={{ height: '28px', width: 'auto', objectFit: 'contain' }} 
+            />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-extrabold text-slate-900 leading-none">
+          <div className="desk-title-group">
+            <div className="desk-title-row">
+              <h1 className="desk-title">
                 Referee & Timing Desk
               </h1>
-              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+              <span className="desk-badge desk-badge-official">
                 Official
               </span>
             </div>
             {eventName && (
-              <span className="text-xs text-slate-500 font-medium">Station: {eventName}</span>
+              <span className="desk-station-text">Station: {eventName}</span>
             )}
           </div>
         </div>
 
         <form action={logout}>
-          <Button type="submit" variant="ghost" size="sm" className="text-xs font-bold text-red-600 hover:bg-red-50">
+          <Button 
+            type="submit" 
+            variant="ghost" 
+            size="sm" 
+            style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--danger)', padding: '0.4rem 0.8rem' }}
+          >
             Sign Out ⎋
           </Button>
         </form>
       </div>
 
       {/* Operational Tabs */}
-      <nav className="px-6 flex gap-2 border-t border-slate-100 bg-slate-50">
+      <nav className="desk-nav-tabs">
         <Link 
           href="/referee" 
-          className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-            pathname === '/referee' 
-              ? 'border-blue-600 text-blue-600 bg-white shadow-sm' 
-              : 'border-transparent text-slate-600 hover:text-slate-900'
-          }`}
+          className={`desk-nav-tab ${pathname === '/referee' ? 'active' : ''}`}
         >
           <span>📋</span>
           <span>Call Room Scanner</span>
         </Link>
         <Link 
           href="/referee/results" 
-          className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-            pathname === '/referee/results' 
-              ? 'border-purple-600 text-purple-600 bg-white shadow-sm' 
-              : 'border-transparent text-slate-600 hover:text-slate-900'
-          }`}
+          className={`desk-nav-tab ${pathname === '/referee/results' ? 'active' : ''}`}
         >
           <span>⏱️</span>
           <span>Official Results Engine</span>
@@ -84,3 +91,4 @@ export const RefereeHeader: React.FC<Props> = ({ eventName }) => {
     </header>
   );
 };
+

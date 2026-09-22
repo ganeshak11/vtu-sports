@@ -60,13 +60,27 @@ export default async function ResultsPage() {
   }));
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1060px', margin: '0 auto' }}>
       <div>
-        <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', borderRadius: '4px', background: 'rgba(139, 92, 246, 0.1)', color: '#a78bfa', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-          Dr. ACS College of Engineering &bull; Official Timing System
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '0.35rem', 
+          padding: '0.25rem 0.65rem', 
+          borderRadius: '6px', 
+          background: '#ede9fe', 
+          color: '#6d28d9', 
+          border: '1px solid #ddd6fe', 
+          fontSize: '0.75rem', 
+          fontWeight: 700, 
+          letterSpacing: '0.04em', 
+          textTransform: 'uppercase', 
+          marginBottom: '0.6rem' 
+        }}>
+          ⏱️ Dr. ACS College of Engineering &bull; Official Timing System
         </div>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.25rem' }}>Official Results Engine</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.35rem', letterSpacing: '-0.02em' }}>Official Results Engine</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
           Photo finish file import for track events &bull; 3-attempt best mark entry for field events
         </p>
       </div>

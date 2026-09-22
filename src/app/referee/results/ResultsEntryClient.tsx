@@ -254,22 +254,26 @@ export const ResultsEntryClient: React.FC<Props> = ({
       
       {/* Event and Round Selector */}
       <Card>
-        <CardContent style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <CardContent style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                Select Event:
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Select Event
               </label>
               <select
                 value={selectedEventId}
                 onChange={(e) => setSelectedEventId(e.target.value)}
                 style={{
-                  padding: '0.6rem 0.85rem',
-                  background: 'var(--bg-tertiary)',
+                  padding: '0.65rem 0.95rem',
+                  background: '#ffffff',
                   color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
+                  border: '1.5px solid #cbd5e1',
                   borderRadius: 'var(--radius-sm)',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  minWidth: '240px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                  cursor: 'pointer'
                 }}
               >
                 {events.map(ev => (
@@ -281,19 +285,23 @@ export const ResultsEntryClient: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                Select Round:
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Select Round
               </label>
               <select
                 value={selectedRoundId}
                 onChange={(e) => setSelectedRoundId(e.target.value)}
                 style={{
-                  padding: '0.6rem 0.85rem',
-                  background: 'var(--bg-tertiary)',
+                  padding: '0.65rem 0.95rem',
+                  background: '#ffffff',
                   color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
+                  border: '1.5px solid #cbd5e1',
                   borderRadius: 'var(--radius-sm)',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  minWidth: '160px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                  cursor: 'pointer'
                 }}
               >
                 {currentRounds.length === 0 && <option value="">No Rounds Configured</option>}
@@ -306,16 +314,21 @@ export const ResultsEntryClient: React.FC<Props> = ({
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ 
-              padding: '0.35rem 0.75rem', 
+              padding: '0.4rem 0.85rem', 
               borderRadius: '999px', 
               fontSize: '0.75rem', 
-              fontWeight: 700, 
-              background: isTrack ? 'rgba(59, 130, 246, 0.15)' : 'rgba(236, 72, 153, 0.15)',
-              color: isTrack ? 'var(--accent-primary)' : '#ec4899'
+              fontWeight: 800, 
+              letterSpacing: '0.04em',
+              background: isTrack ? '#eff6ff' : '#fdf2f8',
+              color: isTrack ? '#1d4ed8' : '#be185d',
+              border: `1px solid ${isTrack ? '#bfdbfe' : '#fbcfe8'}`
             }}>
               {isTrack ? '🏃 TRACK EVENT (PHOTO FINISH)' : '🏋️ FIELD EVENT (3 ATTEMPTS)'}
+            </span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+              ({roundResults.length} seeded)
             </span>
           </div>
         </CardContent>
@@ -326,9 +339,10 @@ export const ResultsEntryClient: React.FC<Props> = ({
         <div style={{
           padding: '1rem 1.25rem',
           borderRadius: 'var(--radius-sm)',
-          background: message.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border: `1px solid ${message.type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
-          color: message.type === 'success' ? 'var(--success)' : 'var(--danger)'
+          background: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
+          border: `1px solid ${message.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+          color: message.type === 'success' ? '#065f46' : '#991b1b',
+          fontSize: '0.9rem'
         }}>
           <strong>{message.text}</strong>
           {message.details && (
@@ -345,15 +359,15 @@ export const ResultsEntryClient: React.FC<Props> = ({
           
           {/* Photo Finish File Box */}
           <Card>
-            <CardHeader style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <CardTitle style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem' }}>
+              <CardTitle style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span>📷 Photo Finish File Importer</span>
               </CardTitle>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleInsertSamplePhotoFinish}
-                style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}
+                style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 700 }}
               >
                 ⚡ Insert Sample Timing Data
               </Button>
@@ -376,17 +390,18 @@ export const ResultsEntryClient: React.FC<Props> = ({
                 value={photoFinishText}
                 onChange={(e) => setPhotoFinishText(e.target.value)}
                 placeholder="Lane, Bib, Time&#10;1, 102, 10.45&#10;2, 105, 10.52&#10;3, 108, 10.89"
-                rows={5}
+                rows={4}
                 style={{
                   width: '100%',
                   padding: '0.75rem 1rem',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'var(--bg-primary)',
+                  background: '#ffffff',
                   color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
+                  border: '1.5px solid #cbd5e1',
                   fontFamily: 'monospace',
                   fontSize: '0.9rem',
-                  outline: 'none'
+                  outline: 'none',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)'
                 }}
               />
 
@@ -405,26 +420,26 @@ export const ResultsEntryClient: React.FC<Props> = ({
 
           {/* Lane Timing Table */}
           <Card>
-            <CardHeader style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)' }}>
-              <CardTitle style={{ fontSize: '1.1rem' }}>Seeded Heat Lanes & Timing Roster</CardTitle>
+            <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '1rem 1.5rem' }}>
+              <CardTitle style={{ fontSize: '1.05rem', fontWeight: 800 }}>Seeded Heat Lanes & Timing Roster</CardTitle>
             </CardHeader>
             <CardContent style={{ padding: 0 }}>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <table className="timing-roster-table">
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)' }}>
-                      <th style={{ padding: '0.875rem 1rem', width: '70px' }}>Rank</th>
-                      <th style={{ padding: '0.875rem 1rem', width: '80px' }}>Lane</th>
-                      <th style={{ padding: '0.875rem 1rem', width: '90px' }}>Bib #</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>Athlete Name</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>College</th>
-                      <th style={{ padding: '0.875rem 1rem', width: '140px', textAlign: 'right' }}>Time (Seconds)</th>
+                    <tr>
+                      <th style={{ width: '80px' }}>Rank</th>
+                      <th style={{ width: '100px' }}>Lane</th>
+                      <th style={{ width: '110px' }}>Bib #</th>
+                      <th>Athlete Name</th>
+                      <th>College</th>
+                      <th style={{ width: '160px', textAlign: 'right' }}>Time (Seconds)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {roundResults.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <td colSpan={6} style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                           No seeded athletes in this round. Seed heats first under <strong>Heat Generation</strong>.
                         </td>
                       </tr>
@@ -436,51 +451,55 @@ export const ResultsEntryClient: React.FC<Props> = ({
                           const currentVal = manualTimes[res.profile_id] ?? (res.final_result !== null ? res.final_result.toString() : '');
 
                           return (
-                            <tr key={res.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                              <td style={{ padding: '0.875rem 1rem', fontWeight: 800 }}>
+                            <tr key={res.id}>
+                              <td style={{ fontWeight: 800 }}>
                                 {res.rank ? (
                                   <span style={{ 
-                                    padding: '0.2rem 0.5rem', 
-                                    borderRadius: '4px', 
-                                    background: res.rank === 1 ? '#FCD34D' : res.rank === 2 ? '#E5E7EB' : res.rank === 3 ? '#D97706' : 'var(--bg-tertiary)',
-                                    color: res.rank <= 3 ? '#000' : 'var(--text-secondary)',
+                                    display: 'inline-block',
+                                    padding: '0.2rem 0.55rem', 
+                                    borderRadius: '6px', 
+                                    background: res.rank === 1 ? '#fef3c7' : res.rank === 2 ? '#f1f5f9' : res.rank === 3 ? '#ffedd5' : '#f8fafc',
+                                    color: res.rank === 1 ? '#92400e' : res.rank === 2 ? '#334155' : res.rank === 3 ? '#9a3412' : '#64748b',
+                                    border: `1px solid ${res.rank === 1 ? '#fde68a' : res.rank === 2 ? '#cbd5e1' : res.rank === 3 ? '#fed7aa' : '#e2e8f0'}`,
                                     fontSize: '0.75rem',
                                     fontWeight: 800
                                   }}>
                                     {res.rank === 1 ? '🥇 1st' : res.rank === 2 ? '🥈 2nd' : res.rank === 3 ? '🥉 3rd' : `${res.rank}th`}
                                   </span>
-                                ) : '-'}
+                                ) : (
+                                  <span style={{ color: '#94a3b8' }}>-</span>
+                                )}
                               </td>
-                              <td style={{ padding: '0.875rem 1rem', fontWeight: 700, color: 'var(--accent-primary)' }}>
-                                {res.lane_number ? `Lane ${res.lane_number}` : '-'}
+                              <td>
+                                {res.lane_number ? (
+                                  <span className="timing-lane-badge">
+                                    Lane {res.lane_number}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: '#94a3b8' }}>-</span>
+                                )}
                               </td>
-                              <td style={{ padding: '0.875rem 1rem', fontWeight: 700 }}>
-                                #{ath?.bib_number || ath?.chest_number || 'N/A'}
+                              <td>
+                                <span className="timing-bib-badge">
+                                  #{ath?.bib_number || ath?.chest_number || 'N/A'}
+                                </span>
                               </td>
-                              <td style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>
-                                {ath?.sslc_name || ath?.full_name || 'Athlete'}
+                              <td>
+                                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                                  {ath?.sslc_name || ath?.full_name || 'Athlete'}
+                                </span>
                               </td>
-                              <td style={{ padding: '0.875rem 1rem', color: 'var(--text-secondary)' }}>
+                              <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                                 {ath?.college_name || 'N/A'}
                               </td>
-                              <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
+                              <td style={{ textAlign: 'right' }}>
                                 <input
                                   type="number"
                                   step="0.001"
                                   placeholder="00.000"
                                   value={currentVal}
                                   onChange={(e) => setManualTimes(prev => ({ ...prev, [res.profile_id]: e.target.value }))}
-                                  style={{
-                                    width: '110px',
-                                    padding: '0.45rem 0.6rem',
-                                    borderRadius: 'var(--radius-sm)',
-                                    background: 'var(--bg-tertiary)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--border-color)',
-                                    textAlign: 'right',
-                                    fontFamily: 'monospace',
-                                    fontWeight: 700
-                                  }}
+                                  className="timing-time-input"
                                 />
                               </td>
                             </tr>
@@ -492,7 +511,7 @@ export const ResultsEntryClient: React.FC<Props> = ({
               </div>
 
               {roundResults.length > 0 && (
-                <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
                   <Button variant="primary" onClick={handleManualTrackSubmit} isLoading={isLoading}>
                     Save Track Times & Recalculate
                   </Button>
@@ -504,30 +523,30 @@ export const ResultsEntryClient: React.FC<Props> = ({
       ) : (
         /* FIELD EVENTS: 3-Attempt Entry Matrix */
         <Card>
-          <CardHeader style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-tertiary)' }}>
-            <CardTitle style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '1rem 1.5rem' }}>
+            <CardTitle style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>📏 3-Attempt Entry Matrix: {selectedEvent?.name}</span>
             </CardTitle>
           </CardHeader>
           <CardContent style={{ padding: 0 }}>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <table className="timing-roster-table">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)' }}>
-                    <th style={{ padding: '0.875rem 1rem', width: '70px' }}>Rank</th>
-                    <th style={{ padding: '0.875rem 1rem', width: '90px' }}>Bib #</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>Athlete Name</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>College</th>
-                    <th style={{ padding: '0.875rem 1rem', textAlign: 'center', width: '110px' }}>Attempt 1 (m)</th>
-                    <th style={{ padding: '0.875rem 1rem', textAlign: 'center', width: '110px' }}>Attempt 2 (m)</th>
-                    <th style={{ padding: '0.875rem 1rem', textAlign: 'center', width: '110px' }}>Attempt 3 (m)</th>
-                    <th style={{ padding: '0.875rem 1rem', textAlign: 'right', width: '120px' }}>Best Mark</th>
+                  <tr>
+                    <th style={{ width: '80px' }}>Rank</th>
+                    <th style={{ width: '110px' }}>Bib #</th>
+                    <th>Athlete Name</th>
+                    <th>College</th>
+                    <th style={{ textAlign: 'center', width: '120px' }}>Attempt 1 (m)</th>
+                    <th style={{ textAlign: 'center', width: '120px' }}>Attempt 2 (m)</th>
+                    <th style={{ textAlign: 'center', width: '120px' }}>Attempt 3 (m)</th>
+                    <th style={{ textAlign: 'right', width: '130px' }}>Best Mark</th>
                   </tr>
                 </thead>
                 <tbody>
                   {roundResults.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                      <td colSpan={8} style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                         No athletes assigned to this field round. Seed athletes first.
                       </td>
                     </tr>
@@ -543,31 +562,39 @@ export const ResultsEntryClient: React.FC<Props> = ({
                       const liveBest = nums.length > 0 ? Math.max(...nums).toFixed(2) : (res.best_mark ? res.best_mark.toFixed(2) : '-');
 
                       return (
-                        <tr key={res.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 800 }}>
+                        <tr key={res.id}>
+                          <td style={{ fontWeight: 800 }}>
                             {res.rank ? (
                               <span style={{ 
-                                padding: '0.2rem 0.5rem', 
-                                borderRadius: '4px', 
-                                background: res.rank === 1 ? '#FCD34D' : res.rank === 2 ? '#E5E7EB' : res.rank === 3 ? '#D97706' : 'var(--bg-tertiary)',
-                                color: res.rank <= 3 ? '#000' : 'var(--text-secondary)',
+                                display: 'inline-block',
+                                padding: '0.2rem 0.55rem', 
+                                borderRadius: '6px', 
+                                background: res.rank === 1 ? '#fef3c7' : res.rank === 2 ? '#f1f5f9' : res.rank === 3 ? '#ffedd5' : '#f8fafc',
+                                color: res.rank === 1 ? '#92400e' : res.rank === 2 ? '#334155' : res.rank === 3 ? '#9a3412' : '#64748b',
+                                border: `1px solid ${res.rank === 1 ? '#fde68a' : res.rank === 2 ? '#cbd5e1' : res.rank === 3 ? '#fed7aa' : '#e2e8f0'}`,
                                 fontSize: '0.75rem',
                                 fontWeight: 800
                               }}>
                                 {res.rank === 1 ? '🥇 1st' : res.rank === 2 ? '🥈 2nd' : res.rank === 3 ? '🥉 3rd' : `${res.rank}th`}
                               </span>
-                            ) : '-'}
+                            ) : (
+                              <span style={{ color: '#94a3b8' }}>-</span>
+                            )}
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 700, color: 'var(--accent-primary)' }}>
-                            #{ath?.bib_number || ath?.chest_number || 'N/A'}
+                          <td>
+                            <span className="timing-bib-badge">
+                              #{ath?.bib_number || ath?.chest_number || 'N/A'}
+                            </span>
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>
-                            {ath?.sslc_name || ath?.full_name}
+                          <td>
+                            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                              {ath?.sslc_name || ath?.full_name}
+                            </span>
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', color: 'var(--text-secondary)' }}>
+                          <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                             {ath?.college_name || 'N/A'}
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <td style={{ textAlign: 'center' }}>
                             <input
                               type="number"
                               step="0.01"
@@ -575,18 +602,21 @@ export const ResultsEntryClient: React.FC<Props> = ({
                               value={userAtts.att1}
                               onChange={(e) => handleAttemptChange(res.profile_id, 'att1', e.target.value)}
                               style={{
-                                width: '80px',
-                                padding: '0.4rem',
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-tertiary)',
+                                width: '85px',
+                                padding: '0.45rem 0.5rem',
+                                borderRadius: '6px',
+                                background: '#ffffff',
                                 color: 'var(--text-primary)',
-                                border: '1px solid var(--border-color)',
+                                border: '1.5px solid #cbd5e1',
                                 textAlign: 'center',
-                                fontWeight: 600
+                                fontFamily: 'monospace',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                outline: 'none'
                               }}
                             />
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <td style={{ textAlign: 'center' }}>
                             <input
                               type="number"
                               step="0.01"
@@ -594,18 +624,21 @@ export const ResultsEntryClient: React.FC<Props> = ({
                               value={userAtts.att2}
                               onChange={(e) => handleAttemptChange(res.profile_id, 'att2', e.target.value)}
                               style={{
-                                width: '80px',
-                                padding: '0.4rem',
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-tertiary)',
+                                width: '85px',
+                                padding: '0.45rem 0.5rem',
+                                borderRadius: '6px',
+                                background: '#ffffff',
                                 color: 'var(--text-primary)',
-                                border: '1px solid var(--border-color)',
+                                border: '1.5px solid #cbd5e1',
                                 textAlign: 'center',
-                                fontWeight: 600
+                                fontFamily: 'monospace',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                outline: 'none'
                               }}
                             />
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <td style={{ textAlign: 'center' }}>
                             <input
                               type="number"
                               step="0.01"
@@ -613,18 +646,21 @@ export const ResultsEntryClient: React.FC<Props> = ({
                               value={userAtts.att3}
                               onChange={(e) => handleAttemptChange(res.profile_id, 'att3', e.target.value)}
                               style={{
-                                width: '80px',
-                                padding: '0.4rem',
-                                borderRadius: 'var(--radius-sm)',
-                                background: 'var(--bg-tertiary)',
+                                width: '85px',
+                                padding: '0.45rem 0.5rem',
+                                borderRadius: '6px',
+                                background: '#ffffff',
                                 color: 'var(--text-primary)',
-                                border: '1px solid var(--border-color)',
+                                border: '1.5px solid #cbd5e1',
                                 textAlign: 'center',
-                                fontWeight: 600
+                                fontFamily: 'monospace',
+                                fontWeight: 700,
+                                fontSize: '0.9rem',
+                                outline: 'none'
                               }}
                             />
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', textAlign: 'right', fontWeight: 800, color: 'var(--accent-primary)', fontSize: '1rem' }}>
+                          <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--accent-primary)', fontSize: '1rem', fontFamily: 'monospace' }}>
                             {liveBest !== '-' ? `${liveBest} m` : '-'}
                           </td>
                         </tr>
@@ -636,7 +672,7 @@ export const ResultsEntryClient: React.FC<Props> = ({
             </div>
 
             {roundResults.length > 0 && (
-              <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
                 <Button variant="primary" onClick={handleSubmitFieldAttempts} isLoading={isLoading}>
                   💾 Compute Best Marks & Finalize Podium
                 </Button>

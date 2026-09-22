@@ -17,53 +17,69 @@ export default async function WardenLayout({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--bg-primary)]">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div className="portal-layout">
+      <header className="desk-header">
         {/* Top Strip */}
-        <div className="bg-slate-900 text-slate-300 text-xs px-6 py-1.5 flex justify-between items-center">
+        <div className="desk-top-strip">
           <span>Dr. ACS College of Engineering &bull; Campus Hostel Administration</span>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-white transition-colors">🏠 Public Home</Link>
-            <Link href="/live" className="hover:text-white transition-colors">🔴 Live Feed</Link>
-            <Link href="/leaderboard" className="hover:text-white transition-colors">🏆 Standings</Link>
+          <div className="desk-top-links">
+            <Link href="/">🏠 Public Home</Link>
+            <Link href="/live">🔴 Live Feed</Link>
+            <Link href="/leaderboard">🏆 Standings</Link>
           </div>
         </div>
 
         {/* Main Bar */}
-        <div className="px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <img src="/vtu.png" alt="VTU" className="h-8 w-auto object-contain" />
-              <div className="h-6 w-px bg-slate-200"></div>
-              <img src="/acsce-logo.png" alt="ACSCE" className="h-8 w-auto object-contain" />
+        <div className="desk-main-bar">
+          <div className="desk-brand-group">
+            <div className="desk-logos">
+              <img 
+                src="/vtu.png" 
+                alt="VTU" 
+                className="desk-logo-vtu" 
+                style={{ height: '34px', width: 'auto', objectFit: 'contain' }} 
+              />
+              <div className="desk-logo-divider" />
+              <img 
+                src="/acsce-logo.png" 
+                alt="ACSCE" 
+                className="desk-logo-acsce" 
+                style={{ height: '28px', width: 'auto', objectFit: 'contain' }} 
+              />
             </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold text-slate-900 leading-none">
+            <div className="desk-title-group">
+              <div className="desk-title-row">
+                <h1 className="desk-title">
                   Campus Hostel Warden Desk
                 </h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-cyan-100 text-cyan-800 border border-cyan-200">
+                <span className="desk-badge desk-badge-warden">
                   Hostel Operations
                 </span>
               </div>
-              <span className="text-xs text-slate-500 font-medium">
+              <span className="desk-station-text">
                 Location: {session.accommodationName || 'Dr. ACSCE Campus Hostels'}
               </span>
             </div>
           </div>
 
           <form action={logout}>
-            <Button type="submit" variant="ghost" size="sm" className="text-xs font-bold text-red-600 hover:bg-red-50">
+            <Button 
+              type="submit" 
+              variant="ghost" 
+              size="sm" 
+              style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--danger)', padding: '0.4rem 0.8rem' }}
+            >
               Sign Out ⎋
             </Button>
           </form>
         </div>
       </header>
 
-      <main className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto w-full">
+      <main className="portal-main-content">
         {children}
       </main>
     </div>
   );
 }
+
