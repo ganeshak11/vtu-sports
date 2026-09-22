@@ -63,12 +63,20 @@ export default async function AdminDashboard() {
             Dr. ACS College of Engineering &bull; VTU Athletics Meet 2026 Operations
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <a href="/api/admin/export-athletes" download="VTU_Athletics_2026_All_Athletes.xlsx" style={{ textDecoration: 'none' }}>
+            <Button 
+              variant="primary" 
+              style={{ background: '#059669', borderColor: '#059669', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}
+            >
+              <span>📊 Export Athletes (.xlsx)</span>
+            </Button>
+          </a>
           <Link href="/admin/accreditation">
             <Button variant="secondary">🎟️ Accreditation Desk</Button>
           </Link>
           <Link href="/admin/events">
-            <Button variant="primary">Manage Events</Button>
+            <Button variant="secondary">Manage Events</Button>
           </Link>
         </div>
       </div>
@@ -144,20 +152,30 @@ export default async function AdminDashboard() {
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <a href="/api/admin/export-athletes" download="VTU_Athletics_2026_All_Athletes.xlsx" style={{ width: '100%', textDecoration: 'none' }}>
+              <Button variant="primary" style={{ width: '100%', justifyContent: 'flex-start', background: '#059669', borderColor: '#059669', fontWeight: 700 }}>
+                📊 Export All Details (.xlsx)
+              </Button>
+            </a>
             <Link href="/admin/athletes" style={{ width: '100%' }}>
               <Button variant="secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-                View All Athletes
+                👥 View All Athletes ({totalAthletes || 0})
+              </Button>
+            </Link>
+            <Link href="/admin/id-cards" style={{ width: '100%' }}>
+              <Button variant="secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
+                🪪 Print Athlete ID Badges
               </Button>
             </Link>
             <Link href="/admin/accommodations" style={{ width: '100%' }}>
               <Button variant="secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-                Assign Accommodation
+                🏢 Assign Accommodation
               </Button>
             </Link>
             <Link href="/admin/events" style={{ width: '100%' }}>
               <Button variant="secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-                Manage Schedule
+                ⏱️ Manage Schedule & Heats
               </Button>
             </Link>
           </CardContent>
