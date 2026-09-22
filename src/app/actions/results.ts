@@ -6,7 +6,8 @@ import { requireRole, AuthError } from '@/lib/auth-guard';
 
 export interface ResultPayload {
   athleteId: string;
-  result: number;
+  result: number | null;
+  status?: 'FINISHED' | 'DNS' | 'DNF' | 'DQ';
 }
 
 export interface FieldAttemptPayload {
@@ -19,7 +20,7 @@ export interface FieldAttemptPayload {
 /**
  * Standard submit results (used for generic or single-input manual entries)
  */
-export async function submitResults(roundId: string, results: ResultPayload[]) {
+export async function submitResults(roundId: string, results: ResultPayload[], heatId?: string) {
   try {
     await requireRole('official', 'admin');
   } catch (e) {
@@ -49,22 +50,31 @@ export async function submitResults(roundId: string, results: ResultPayload[]) {
   const metric = ev?.measurement_metric; // 'time', 'distance', 'points'
   const qualRule = ev?.qualification_rules?.config;
 
-  const resultsToInsert = results.map(r => ({
-    event_id: round.event_id,
-    profile_id: r.athleteId,
-    final_result: r.result,
-    round_id: roundId,
-    status: 'FINISHED'
-  }));
+  // Update each athlete's result and status
+  for (const r of results) {
+    const isFinished = !r.status || r.status === 'FINISHED';
+    const status = r.status || (r.result !== null ? 'FINISHED' : 'DNS');
+    const updateData: any = {
+      final_result: isFinished ? r.result : null,
+      status: status,
+      is_dns: status === 'DNS',
+      is_dq: status === 'DQ'
+    };
 
-  // Upsert Results
-  const { error: upsertError } = await supabase
-    .from('event_results')
-    .upsert(resultsToInsert, { onConflict: 'round_id,profile_id' });
+    let query = supabase
+      .from('event_results')
+      .update(updateData)
+      .eq('round_id', roundId)
+      .eq('profile_id', r.athleteId);
 
-  if (upsertError) {
-    console.error('Upsert error:', upsertError);
-    return { error: 'Failed to save results' };
+    if (heatId) {
+      query = query.eq('heat_id', heatId);
+    }
+
+    const { error: updErr } = await query;
+    if (updErr) {
+      console.error('Result update error:', updErr);
+    }
   }
 
   // Calculate ranks & qualifications
@@ -77,6 +87,7 @@ export async function submitResults(roundId: string, results: ResultPayload[]) {
 
   return { success: true };
 }
+
 
 /**
  * 3-Attempt Entry for Field Events (Shot Put, Discus, Javelin, Long Jump, High Jump, etc.)
@@ -159,7 +170,7 @@ export async function submitFieldAttempts(roundId: string, attempts: FieldAttemp
  * Lane, Bib, Time
  * or Place, Lane, Bib, Time
  */
-export async function importPhotoFinishResults(roundId: string, fileContent: string) {
+export async function importPhotoFinishResults(roundId: string, fileContent: string, heatId?: string) {
   try {
     await requireRole('official', 'admin');
   } catch (e) {
@@ -183,12 +194,17 @@ export async function importPhotoFinishResults(roundId: string, fileContent: str
 
   if (roundError || !round) return { error: 'Round not found' };
 
-  // Fetch all existing event_results for this round
-  const { data: seededResults } = await supabase
+  // Fetch seeded event_results for this round (filtered to heatId if provided)
+  let seededQuery = supabase
     .from('event_results')
-    .select('id, profile_id, lane_number, profiles ( id, bib_number, chest_number, sslc_name, full_name )')
+    .select('id, profile_id, heat_id, lane_number, profiles ( id, bib_number, chest_number, sslc_name, full_name )')
     .eq('round_id', roundId);
 
+  if (heatId) {
+    seededQuery = seededQuery.eq('heat_id', heatId);
+  }
+
+  const { data: seededResults } = await seededQuery;
   const seeded = seededResults || [];
 
   // Parse lines
@@ -245,7 +261,7 @@ export async function importPhotoFinishResults(roundId: string, fileContent: str
   }
 
   // Match records to seeded athletes
-  const matchedUpdates: any[] = [];
+  const matchedUpdates: { id: string; time: number }[] = [];
   const unmatched: string[] = [];
 
   for (const record of parsedRecords) {
@@ -263,11 +279,7 @@ export async function importPhotoFinishResults(roundId: string, fileContent: str
     if (matchedAthleteResult) {
       matchedUpdates.push({
         id: matchedAthleteResult.id,
-        event_id: round.event_id,
-        round_id: roundId,
-        profile_id: matchedAthleteResult.profile_id,
-        final_result: record.time,
-        status: 'FINISHED'
+        time: record.time
       });
     } else {
       unmatched.push(`Bib: ${record.bib || 'N/A'}, Lane: ${record.lane || 'N/A'}, Time: ${record.time}s`);
@@ -276,19 +288,19 @@ export async function importPhotoFinishResults(roundId: string, fileContent: str
 
   if (matchedUpdates.length === 0) {
     return { 
-      error: 'Could not match any rows in the file to seeded athletes in this round.',
+      error: 'Could not match any rows in the file to seeded athletes in this round/heat.',
       details: `Parsed ${parsedRecords.length} lines. Ensure Bib numbers match assigned athletes.`
     };
   }
 
-  // Update in DB
-  const { error: upsertErr } = await supabase
-    .from('event_results')
-    .upsert(matchedUpdates);
-
-  if (upsertErr) {
-    console.error('Photo finish upsert error:', upsertErr);
-    return { error: 'Failed to record photo finish results' };
+  // Update in DB by exact ID
+  for (const update of matchedUpdates) {
+    await supabase.from('event_results').update({
+      final_result: update.time,
+      status: 'FINISHED',
+      is_dns: false,
+      is_dq: false
+    }).eq('id', update.id);
   }
 
   // Recalculate Ranks
@@ -310,52 +322,90 @@ export async function importPhotoFinishResults(roundId: string, fileContent: str
 }
 
 /**
- * Shared rank and qualifier calculator
+ * Shared rank and qualifier calculator (IAAF / World Athletics compliant)
  */
 async function recalculateRanks(roundId: string, metric: string = 'time', qualRule?: any) {
   const { data: allResults } = await supabase
     .from('event_results')
-    .select('id, profile_id, final_result, status')
+    .select('id, profile_id, heat_id, final_result, status')
     .eq('round_id', roundId);
 
   if (!allResults || allResults.length === 0) return;
 
-  // Filter athletes with a valid result
-  const finishResults = allResults.filter(r => r.final_result !== null && !isNaN(r.final_result));
+  // 1. Non-finishers (DNS, DNF, DQ) get null rank and qualified = false
+  const nonFinishers = allResults.filter(
+    r => r.status === 'DNS' || r.status === 'DNF' || r.status === 'DQ' || r.final_result === null || isNaN(Number(r.final_result))
+  );
+  for (const nf of nonFinishers) {
+    await supabase.from('event_results').update({ rank: null, qualified: false }).eq('id', nf.id);
+  }
 
-  // Sort logic: 'time': lower is better (ascending). 'distance'/'points': higher is better (descending)
+  // 2. Finished athletes with valid results
+  const finished = allResults.filter(
+    r => r.final_result !== null && !isNaN(Number(r.final_result)) && r.status !== 'DNS' && r.status !== 'DNF' && r.status !== 'DQ'
+  );
+  if (finished.length === 0) return;
+
   const sortMultiplier = metric === 'time' ? 1 : -1;
-  finishResults.sort((a, b) => (Number(a.final_result) - Number(b.final_result)) * sortMultiplier);
+  finished.sort((a, b) => (Number(a.final_result) - Number(b.final_result)) * sortMultiplier);
 
-  const updates: any[] = [];
+  // Overall ranks (1, 2, 3...)
+  const rankMap = new Map<string, number>();
   let currentRank = 1;
-
-  for (let i = 0; i < finishResults.length; i++) {
-    const res = finishResults[i];
-
-    if (i > 0 && finishResults[i - 1].final_result === res.final_result) {
-      // Tie
+  for (let i = 0; i < finished.length; i++) {
+    if (i > 0 && Number(finished[i - 1].final_result) === Number(finished[i].final_result)) {
+      // Tie - maintain previous rank
     } else {
       currentRank = i + 1;
     }
+    rankMap.set(finished[i].id, currentRank);
+  }
 
-    let isQualified = false;
-    if (qualRule?.type === 'top_overall') {
-      const count = qualRule.count || 8;
-      if (currentRank <= count) isQualified = true;
-    } else if (qualRule?.type === 'top_per_heat_and_overall') {
-      const count = (qualRule.top_per_heat || 2) + (qualRule.next_best_overall || 2);
-      if (currentRank <= count) isQualified = true;
+  // Qualification logic
+  const qualifiedIds = new Set<string>();
+
+  if (qualRule?.type === 'top_per_heat_and_overall') {
+    const topPerHeat = qualRule.top_per_heat || 2;
+    const nextBestOverall = qualRule.next_best_overall || 2;
+
+    // Group finished athletes by heat_id
+    const heatGroups: Record<string, typeof finished> = {};
+    for (const res of finished) {
+      const hId = res.heat_id || 'unassigned';
+      if (!heatGroups[hId]) heatGroups[hId] = [];
+      heatGroups[hId].push(res);
     }
 
-    updates.push({
-      id: res.id,
-      rank: currentRank,
-      qualified: isQualified
-    });
+    // Top N per heat automatically qualify (Q)
+    for (const hId of Object.keys(heatGroups)) {
+      const heatAthletes = heatGroups[hId]; // already sorted
+      const topAthletes = heatAthletes.slice(0, topPerHeat);
+      for (const a of topAthletes) {
+        qualifiedIds.add(a.id);
+      }
+    }
+
+    // Next fastest overall across remaining athletes qualify on time (q)
+    let addedNext = 0;
+    for (const res of finished) {
+      if (!qualifiedIds.has(res.id) && addedNext < nextBestOverall) {
+        qualifiedIds.add(res.id);
+        addedNext++;
+      }
+    }
+  } else if (qualRule?.type === 'top_overall') {
+    const count = qualRule.count || 8;
+    for (let i = 0; i < Math.min(count, finished.length); i++) {
+      qualifiedIds.add(finished[i].id);
+    }
   }
 
-  if (updates.length > 0) {
-    await supabase.from('event_results').upsert(updates);
+  // Save updated ranks and qualified status back to DB
+  for (const res of finished) {
+    await supabase.from('event_results').update({
+      rank: rankMap.get(res.id) || null,
+      qualified: qualifiedIds.has(res.id)
+    }).eq('id', res.id);
   }
 }
+

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { 
   submitResults, 
   submitFieldAttempts, 
@@ -28,10 +27,18 @@ interface RoundData {
   sequence_number: number;
 }
 
+interface HeatData {
+  id: string;
+  round_id: string;
+  heat_name: string;
+  start_time: string | null;
+}
+
 interface ResultRecord {
   id: string;
   round_id: string;
   event_id: string;
+  heat_id: string | null;
   profile_id: string;
   lane_number: number | null;
   status: string | null;
@@ -42,6 +49,10 @@ interface ResultRecord {
   final_result: number | null;
   rank: number | null;
   qualified: boolean | null;
+  event_heats?: {
+    id: string;
+    heat_name: string;
+  } | null;
   profiles: {
     id: string;
     sslc_name?: string;
@@ -56,6 +67,7 @@ interface Props {
   initialEventId?: string;
   events: EventData[];
   rounds: RoundData[];
+  heats: HeatData[];
   results: ResultRecord[];
 }
 
@@ -63,14 +75,17 @@ export const ResultsEntryClient: React.FC<Props> = ({
   initialEventId,
   events,
   rounds,
+  heats,
   results
 }) => {
   const [selectedEventId, setSelectedEventId] = useState<string>(initialEventId || events[0]?.id || '');
   const [selectedRoundId, setSelectedRoundId] = useState<string>('');
+  const [selectedHeatId, setSelectedHeatId] = useState<string>('');
   
   // Track State
   const [photoFinishText, setPhotoFinishText] = useState('');
   const [manualTimes, setManualTimes] = useState<Record<string, string>>({});
+  const [athleteStatuses, setAthleteStatuses] = useState<Record<string, 'FINISHED' | 'DNS' | 'DNF' | 'DQ'>>({});
   
   // Field State
   const [attemptsData, setAttemptsData] = useState<Record<string, { att1: string; att2: string; att3: string }>>({});
@@ -81,25 +96,48 @@ export const ResultsEntryClient: React.FC<Props> = ({
   const selectedEvent = events.find(e => e.id === selectedEventId);
   const currentRounds = rounds.filter(r => r.event_id === selectedEventId);
 
-  // Sync selected round
+  // Sync selected round when event changes
   useEffect(() => {
     if (currentRounds.length > 0 && !currentRounds.some(r => r.id === selectedRoundId)) {
       setSelectedRoundId(currentRounds[0].id);
     }
   }, [selectedEventId, currentRounds]);
 
-  // Seeded athletes for the selected round
+  // Current heats for the active round
+  const currentHeats = heats.filter(h => h.round_id === selectedRoundId);
+
+  // Sync selected heat when round changes
+  useEffect(() => {
+    if (currentHeats.length > 0) {
+      if (!currentHeats.some(h => h.id === selectedHeatId)) {
+        setSelectedHeatId(currentHeats[0].id);
+      }
+    } else {
+      setSelectedHeatId('');
+    }
+  }, [selectedRoundId, currentHeats.length]);
+
+  // All results for the selected round
   const roundResults = results.filter(r => r.round_id === selectedRoundId);
 
-  // Initialize input state when round changes
+  // Initialize input state and statuses when round changes
   useEffect(() => {
     const timesMap: Record<string, string> = {};
+    const statusMap: Record<string, 'FINISHED' | 'DNS' | 'DNF' | 'DQ'> = {};
     const attMap: Record<string, { att1: string; att2: string; att3: string }> = {};
 
     roundResults.forEach(r => {
       if (r.final_result !== null) {
         timesMap[r.profile_id] = r.final_result.toString();
       }
+      
+      const st = (r.status as any) || 'FINISHED';
+      if (st === 'DNS' || st === 'DNF' || st === 'DQ') {
+        statusMap[r.profile_id] = st;
+      } else {
+        statusMap[r.profile_id] = 'FINISHED';
+      }
+
       attMap[r.profile_id] = {
         att1: r.attempt_1 !== null ? r.attempt_1.toString() : '',
         att2: r.attempt_2 !== null ? r.attempt_2.toString() : '',
@@ -108,11 +146,22 @@ export const ResultsEntryClient: React.FC<Props> = ({
     });
 
     setManualTimes(timesMap);
+    setAthleteStatuses(statusMap);
     setAttemptsData(attMap);
     setMessage(null);
   }, [selectedRoundId]);
 
   const isTrack = selectedEvent?.category === 'track' || selectedEvent?.measurement_metric === 'time';
+
+  // Filter athletes strictly for the active heat (or all if selected or field)
+  const activeResults = React.useMemo(() => {
+    if (currentHeats.length > 0 && selectedHeatId && selectedHeatId !== 'ALL') {
+      return roundResults.filter(r => r.heat_id === selectedHeatId);
+    }
+    return roundResults;
+  }, [roundResults, selectedHeatId, currentHeats.length]);
+
+  const activeHeat = currentHeats.find(h => h.id === selectedHeatId);
 
   // Handle Photo Finish File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,25 +176,25 @@ export const ResultsEntryClient: React.FC<Props> = ({
     reader.readAsText(file);
   };
 
-  // Insert Sample Photo Finish Data
+  // Insert Sample Photo Finish Data (strictly for athletes in the selected heat!)
   const handleInsertSamplePhotoFinish = () => {
-    if (roundResults.length === 0) {
-      alert('No seeded athletes in this round. Generate heats first!');
+    if (activeResults.length === 0) {
+      alert('No seeded athletes in this heat.');
       return;
     }
 
-    // Generate sample times for athletes in this round
-    const sampleLines = roundResults.map((r, i) => {
+    const sampleLines = activeResults.map((r, i) => {
       const lane = r.lane_number || (i + 1);
       const bib = r.profiles?.bib_number || r.profiles?.chest_number || `${100 + i}`;
       const time = (10.20 + i * 0.15 + (Math.random() * 0.08)).toFixed(3);
       return `${lane}, ${bib}, ${time}`;
     });
 
-    setPhotoFinishText(`# FinishLynx / VTU Timing Output Format\n# Lane, Bib, Time(s)\n` + sampleLines.join('\n'));
+    const heatTitle = activeHeat ? activeHeat.heat_name : 'Heat 1';
+    setPhotoFinishText(`# FinishLynx / Omega LIF File (${heatTitle})\n# Lane, Bib, Time(s)\n` + sampleLines.join('\n'));
   };
 
-  // Submit Photo Finish File
+  // Submit Photo Finish File (scoped to the selected heat!)
   const handleImportPhotoFinish = async () => {
     if (!photoFinishText.trim()) {
       setMessage({ type: 'error', text: 'Please paste photo finish data or upload a timing file.' });
@@ -155,7 +204,8 @@ export const ResultsEntryClient: React.FC<Props> = ({
     setIsLoading(true);
     setMessage(null);
 
-    const res = await importPhotoFinishResults(selectedRoundId, photoFinishText);
+    const heatScope = selectedHeatId && selectedHeatId !== 'ALL' ? selectedHeatId : undefined;
+    const res = await importPhotoFinishResults(selectedRoundId, photoFinishText, heatScope);
     if (res.success) {
       setMessage({
         type: 'success',
@@ -178,23 +228,30 @@ export const ResultsEntryClient: React.FC<Props> = ({
     setIsLoading(true);
     setMessage(null);
 
-    const payload: ResultPayload[] = roundResults.map(r => {
-      const val = parseFloat(manualTimes[r.profile_id]);
+    const payload: ResultPayload[] = activeResults.map(r => {
+      const st = athleteStatuses[r.profile_id] || 'FINISHED';
+      const timeVal = parseFloat(manualTimes[r.profile_id]);
       return {
         athleteId: r.profile_id,
-        result: isNaN(val) ? null : val
-      } as any;
-    }).filter(p => p.result !== null);
+        result: st === 'FINISHED' && !isNaN(timeVal) ? timeVal : null,
+        status: st
+      };
+    });
 
-    if (payload.length === 0) {
-      setMessage({ type: 'error', text: 'Please enter at least one valid timing result.' });
+    const hasAnyInput = payload.some(p => p.result !== null || p.status !== 'FINISHED');
+    if (!hasAnyInput) {
+      setMessage({ type: 'error', text: 'Please enter at least one timing result or status change.' });
       setIsLoading(false);
       return;
     }
 
-    const res = await submitResults(selectedRoundId, payload);
+    const heatScope = selectedHeatId && selectedHeatId !== 'ALL' ? selectedHeatId : undefined;
+    const res = await submitResults(selectedRoundId, payload, heatScope);
     if (res.success) {
-      setMessage({ type: 'success', text: 'Manual track results submitted & rankings updated!' });
+      setMessage({ 
+        type: 'success', 
+        text: `Results saved & ranks updated for ${activeHeat ? activeHeat.heat_name : 'this round'}!` 
+      });
     } else {
       setMessage({ type: 'error', text: res.error || 'Failed to submit results' });
     }
@@ -334,6 +391,83 @@ export const ResultsEntryClient: React.FC<Props> = ({
         </CardContent>
       </Card>
 
+      {/* Heat Tabs Bar (for Track Rounds with Multiple Heats) */}
+      {isTrack && currentHeats.length > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem', 
+          flexWrap: 'wrap', 
+          padding: '0.75rem 1.25rem', 
+          background: '#ffffff', 
+          borderRadius: 'var(--radius-md)', 
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+        }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: '#64748b', marginRight: '0.5rem', letterSpacing: '0.05em' }}>
+            SELECT ACTIVE HEAT:
+          </span>
+
+          {currentHeats.map((h) => {
+            const heatAthletes = roundResults.filter(r => r.heat_id === h.id);
+            const completedCount = heatAthletes.filter(r => r.final_result !== null || r.status === 'DNS' || r.status === 'DNF' || r.status === 'DQ').length;
+            const isCompleted = completedCount > 0 && completedCount === heatAthletes.length;
+            const isSelected = selectedHeatId === h.id;
+
+            return (
+              <button
+                key={h.id}
+                type="button"
+                onClick={() => setSelectedHeatId(h.id)}
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '6px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  border: isSelected ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  background: isSelected ? '#2563eb' : '#f8fafc',
+                  color: isSelected ? '#ffffff' : '#0f172a',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>⚡ {h.heat_name}</span>
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  padding: '0.1rem 0.45rem', 
+                  borderRadius: '999px', 
+                  background: isSelected ? 'rgba(255,255,255,0.25)' : (isCompleted ? '#dcfce7' : '#e2e8f0'),
+                  color: isSelected ? '#ffffff' : (isCompleted ? '#166534' : '#475569'),
+                  fontWeight: 800
+                }}>
+                  {isCompleted ? '✓ Timed' : `${heatAthletes.length} lanes`}
+                </span>
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => setSelectedHeatId('ALL')}
+            style={{
+              padding: '0.45rem 0.85rem',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              border: selectedHeatId === 'ALL' ? '2px solid #475569' : '1px solid #e2e8f0',
+              background: selectedHeatId === 'ALL' ? '#475569' : '#ffffff',
+              color: selectedHeatId === 'ALL' ? '#ffffff' : '#64748b',
+              cursor: 'pointer'
+            }}
+          >
+            All Heats (Overview)
+          </button>
+        </div>
+      )}
+
       {/* Status Messages */}
       {message && (
         <div style={{
@@ -357,11 +491,16 @@ export const ResultsEntryClient: React.FC<Props> = ({
       {isTrack ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Photo Finish File Box */}
+          {/* Photo Finish File Box (Scoped to Active Heat) */}
           <Card>
             <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem' }}>
               <CardTitle style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span>📷 Photo Finish File Importer</span>
+                {activeHeat && (
+                  <span style={{ fontSize: '0.8rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
+                    Target: {activeHeat.heat_name}
+                  </span>
+                )}
               </CardTitle>
               <Button 
                 variant="ghost" 
@@ -369,12 +508,13 @@ export const ResultsEntryClient: React.FC<Props> = ({
                 onClick={handleInsertSamplePhotoFinish}
                 style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', fontWeight: 700 }}
               >
-                ⚡ Insert Sample Timing Data
+                ⚡ Insert Sample Timing Data ({activeHeat ? activeHeat.heat_name : 'Current View'})
               </Button>
             </CardHeader>
             <CardContent style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Upload or paste Lynx LIF / Omega CSV timing file. Accepted format: <code>Lane, Bib, Time</code> or <code>Place, Lane, Bib, Time</code>.
+                Upload or paste Lynx LIF / Omega CSV timing file. Format: <code>Lane, Bib, Time</code> or <code>Place, Lane, Bib, Time</code>.
+                {activeHeat && <strong> Times will be matched strictly to {activeHeat.heat_name}.</strong>}
               </p>
 
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -412,7 +552,7 @@ export const ResultsEntryClient: React.FC<Props> = ({
                   isLoading={isLoading}
                   onClick={handleImportPhotoFinish}
                 >
-                  📥 Import Photo Finish & Compute Ranks
+                  📥 Import Photo Finish for {activeHeat ? activeHeat.heat_name : 'Round'}
                 </Button>
               </div>
             </CardContent>
@@ -420,8 +560,20 @@ export const ResultsEntryClient: React.FC<Props> = ({
 
           {/* Lane Timing Table */}
           <Card>
-            <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '1rem 1.5rem' }}>
-              <CardTitle style={{ fontSize: '1.05rem', fontWeight: 800 }}>Seeded Heat Lanes & Timing Roster</CardTitle>
+            <CardHeader style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <CardTitle style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+                  Seeded Heat Lanes & Timing Roster
+                </CardTitle>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.15rem' }}>
+                  {activeHeat ? `Viewing ${activeHeat.heat_name} (${activeResults.length} athletes)` : `All Heats Combined (${activeResults.length} athletes)`}
+                </div>
+              </div>
+              {activeHeat && (
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, background: '#eff6ff', color: '#1d4ed8', padding: '0.25rem 0.65rem', borderRadius: '4px', border: '1px solid #bfdbfe' }}>
+                  ACTIVE TRACK: {activeHeat.heat_name.toUpperCase()}
+                </span>
+              )}
             </CardHeader>
             <CardContent style={{ padding: 0 }}>
               <div style={{ overflowX: 'auto' }}>
@@ -429,26 +581,35 @@ export const ResultsEntryClient: React.FC<Props> = ({
                   <thead>
                     <tr>
                       <th style={{ width: '80px' }}>Rank</th>
-                      <th style={{ width: '100px' }}>Lane</th>
-                      <th style={{ width: '110px' }}>Bib #</th>
+                      <th style={{ width: '90px' }}>Lane</th>
+                      {selectedHeatId === 'ALL' && <th style={{ width: '90px' }}>Heat</th>}
+                      <th style={{ width: '100px' }}>Bib #</th>
                       <th>Athlete Name</th>
                       <th>College</th>
-                      <th style={{ width: '160px', textAlign: 'right' }}>Time (Seconds)</th>
+                      <th style={{ width: '130px', textAlign: 'center' }}>Status</th>
+                      <th style={{ width: '150px', textAlign: 'right' }}>Time (Seconds)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {roundResults.length === 0 ? (
+                    {activeResults.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                          No seeded athletes in this round. Seed heats first under <strong>Heat Generation</strong>.
+                        <td colSpan={selectedHeatId === 'ALL' ? 8 : 7} style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                          No seeded athletes in this {activeHeat ? activeHeat.heat_name : 'round'}. Seed heats first under <strong>Heat Generation</strong>.
                         </td>
                       </tr>
                     ) : (
-                      roundResults
-                        .sort((a, b) => (a.lane_number || 0) - (b.lane_number || 0))
+                      activeResults
+                        .sort((a, b) => {
+                          if (selectedHeatId === 'ALL' && a.heat_id !== b.heat_id) {
+                            return (a.event_heats?.heat_name || '').localeCompare(b.event_heats?.heat_name || '');
+                          }
+                          return (a.lane_number || 0) - (b.lane_number || 0);
+                        })
                         .map((res) => {
                           const ath = res.profiles;
                           const currentVal = manualTimes[res.profile_id] ?? (res.final_result !== null ? res.final_result.toString() : '');
+                          const currentStatus = athleteStatuses[res.profile_id] || 'FINISHED';
+                          const isFinished = currentStatus === 'FINISHED';
 
                           return (
                             <tr key={res.id}>
@@ -479,6 +640,13 @@ export const ResultsEntryClient: React.FC<Props> = ({
                                   <span style={{ color: '#94a3b8' }}>-</span>
                                 )}
                               </td>
+                              {selectedHeatId === 'ALL' && (
+                                <td>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                                    {res.event_heats?.heat_name || 'Heat 1'}
+                                  </span>
+                                </td>
+                              )}
                               <td>
                                 <span className="timing-bib-badge">
                                   #{ath?.bib_number || ath?.chest_number || 'N/A'}
@@ -492,15 +660,64 @@ export const ResultsEntryClient: React.FC<Props> = ({
                               <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                                 {ath?.college_name || 'N/A'}
                               </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <select
+                                  value={currentStatus}
+                                  onChange={(e) => {
+                                    const nextSt = e.target.value as any;
+                                    setAthleteStatuses(prev => ({ ...prev, [res.profile_id]: nextSt }));
+                                    if (nextSt !== 'FINISHED') {
+                                      setManualTimes(prev => ({ ...prev, [res.profile_id]: '' }));
+                                    }
+                                  }}
+                                  style={{
+                                    padding: '0.35rem 0.55rem',
+                                    borderRadius: '6px',
+                                    border: '1.5px solid #cbd5e1',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 800,
+                                    background: 
+                                      currentStatus === 'DNS' ? '#fee2e2' :
+                                      currentStatus === 'DNF' ? '#fef3c7' :
+                                      currentStatus === 'DQ' ? '#f3e8ff' : '#f0fdf4',
+                                    color: 
+                                      currentStatus === 'DNS' ? '#991b1b' :
+                                      currentStatus === 'DNF' ? '#92400e' :
+                                      currentStatus === 'DQ' ? '#6b21a8' : '#166534',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <option value="FINISHED">✓ FINISH</option>
+                                  <option value="DNS">⛔ DNS</option>
+                                  <option value="DNF">⚠️ DNF</option>
+                                  <option value="DQ">🚫 DQ</option>
+                                </select>
+                              </td>
                               <td style={{ textAlign: 'right' }}>
-                                <input
-                                  type="number"
-                                  step="0.001"
-                                  placeholder="00.000"
-                                  value={currentVal}
-                                  onChange={(e) => setManualTimes(prev => ({ ...prev, [res.profile_id]: e.target.value }))}
-                                  className="timing-time-input"
-                                />
+                                {isFinished ? (
+                                  <input
+                                    type="number"
+                                    step="0.001"
+                                    placeholder="00.000"
+                                    value={currentVal}
+                                    onChange={(e) => setManualTimes(prev => ({ ...prev, [res.profile_id]: e.target.value }))}
+                                    className="timing-time-input"
+                                  />
+                                ) : (
+                                  <span style={{ 
+                                    display: 'inline-block',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '6px',
+                                    fontWeight: 800,
+                                    fontSize: '0.85rem',
+                                    fontFamily: 'monospace',
+                                    background: currentStatus === 'DNS' ? '#fef2f2' : currentStatus === 'DNF' ? '#fffbeb' : '#faf5ff',
+                                    color: currentStatus === 'DNS' ? '#dc2626' : currentStatus === 'DNF' ? '#d97706' : '#9333ea',
+                                    border: `1px solid ${currentStatus === 'DNS' ? '#fecaca' : currentStatus === 'DNF' ? '#fde68a' : '#e9d5ff'}`
+                                  }}>
+                                    {currentStatus}
+                                  </span>
+                                )}
                               </td>
                             </tr>
                           );
@@ -510,10 +727,13 @@ export const ResultsEntryClient: React.FC<Props> = ({
                 </table>
               </div>
 
-              {roundResults.length > 0 && (
-                <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
+              {activeResults.length > 0 && (
+                <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                    Entering results for: <strong>{activeHeat ? activeHeat.heat_name : 'All Heats'}</strong> ({activeResults.length} lanes)
+                  </div>
                   <Button variant="primary" onClick={handleManualTrackSubmit} isLoading={isLoading}>
-                    Save Track Times & Recalculate
+                    💾 Save {activeHeat ? activeHeat.heat_name : 'Track'} Results & Recalculate Ranks
                   </Button>
                 </div>
               )}
@@ -685,3 +905,4 @@ export const ResultsEntryClient: React.FC<Props> = ({
     </div>
   );
 };
+

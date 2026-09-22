@@ -23,13 +23,20 @@ export default async function ResultsPage() {
     .select('id, event_id, round_type, scheduled_time, sequence_number')
     .order('sequence_number');
 
-  // Fetch all existing results with profiles
+  // Fetch all heats
+  const { data: heats } = await supabase
+    .from('event_heats')
+    .select('id, round_id, heat_name, start_time')
+    .order('heat_name');
+
+  // Fetch all existing results with profiles and heats
   const { data: results } = await supabase
     .from('event_results')
     .select(`
       id,
       round_id,
       event_id,
+      heat_id,
       profile_id,
       lane_number,
       status,
@@ -40,6 +47,10 @@ export default async function ResultsPage() {
       final_result,
       rank,
       qualified,
+      event_heats:heat_id (
+        id,
+        heat_name
+      ),
       profiles:profile_id (
         id,
         sslc_name,
@@ -52,10 +63,12 @@ export default async function ResultsPage() {
 
   const validEvents = events || [];
   const validRounds = rounds || [];
+  const validHeats = heats || [];
   const initialEventId = session.eventId || validEvents[0]?.id;
 
   const normalizedResults = (results || []).map((r: any) => ({
     ...r,
+    event_heats: Array.isArray(r.event_heats) ? r.event_heats[0] || null : r.event_heats,
     profiles: Array.isArray(r.profiles) ? r.profiles[0] || null : r.profiles
   }));
 
@@ -89,8 +102,10 @@ export default async function ResultsPage() {
         initialEventId={initialEventId}
         events={validEvents}
         rounds={validRounds} 
+        heats={validHeats}
         results={normalizedResults} 
       />
     </div>
   );
 }
+
