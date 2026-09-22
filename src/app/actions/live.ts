@@ -33,7 +33,7 @@ export async function getLiveResults() {
     `)
     .not('rank', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(200);
+    .limit(1000);
 
   if (error || !results) {
     console.error('Error fetching live results:', error);
@@ -86,23 +86,27 @@ export async function getLiveResults() {
         name: `${ev.name} · ${roundLabel}`,
         rawName: ev.name,
         roundType: roundLabel,
-        category: ev.category,
-        gender: ev.gender,
+        category: ev.category || 'track',
+        gender: ev.gender || 'men',
         updated_at: r.created_at,
         results: []
       });
     }
 
     const formattedValue = formatResultValue(r, ev.category);
-    const athleteLabel = prof ? (prof.sslc_name || prof.full_name) : 'Athlete';
-    const bibBadge = prof?.bib_number ? ` (#${prof.bib_number})` : '';
+    const athleteLabel = prof ? (prof.sslc_name || prof.full_name) : 'Student Athlete';
+    const bib = prof?.bib_number || null;
+    const rank = r.rank;
+    const pts = rank === 1 ? 10 : rank === 2 ? 8 : rank === 3 ? 6 : rank === 4 ? 5 : rank === 5 ? 4 : rank === 6 ? 3 : rank === 7 ? 2 : rank === 8 ? 1 : 0;
 
     eventsMap.get(roundKey).results.push({
       id: r.id,
       rank: r.rank,
       result_value: formattedValue,
-      athlete_name: `${athleteLabel}${bibBadge}`,
-      college_name: prof?.college_name || 'N/A'
+      athlete_name: athleteLabel,
+      bib_number: bib,
+      college_name: prof?.college_name || 'Autonomous VTU Affiliate',
+      points: pts
     });
   });
 

@@ -206,10 +206,10 @@ export default function CheckoutClient({ athlete }: Props) {
                 </span>
                 <ul style={{ marginTop: '0.25rem', paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.5 }}>
                   {athlete.ev1_name && <li><b>Event 1:</b> {athlete.ev1_name} (₹100)</li>}
-                  {athlete.ev2_name && <li><b>Event 2:</b> {athlete.ev2_name} (+₹100)</li>}
-                  {athlete.rev_name && <li style={{ color: 'var(--text-secondary)' }}><b>Reserve:</b> {athlete.rev_name} (FREE)</li>}
-                  {athlete.is_relay && <li style={{ color: 'var(--success)' }}><b>4x100m Relay:</b> Squad Member (FREE)</li>}
-                  {athlete.is_half_marathon && <li style={{ color: '#8b5cf6' }}><b>21km Half Marathon:</b> Participant (FREE)</li>}
+                  {athlete.ev2_name && <li><b>Event 2:</b> {athlete.ev2_name} (₹100)</li>}
+                  {athlete.is_relay && <li style={{ color: '#2563eb' }}><b>4x100m Relay:</b> Squad Member (₹100)</li>}
+                  {athlete.is_half_marathon && <li style={{ color: '#7c3aed' }}><b>21km Half Marathon:</b> Participant (₹100)</li>}
+                  {athlete.rev_name && <li style={{ color: 'var(--success)' }}><b>Reserve:</b> {athlete.rev_name} (FREE)</li>}
                 </ul>
               </div>
 

@@ -43,13 +43,16 @@ export default function RegisterClient({ events, collegeName, gender, currentRel
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Dynamic Pricing Calculation
-  // Event 1 = ₹100, Event 2 = ₹100, Reserve = ₹0, Relay = ₹0, Half Marathon = ₹0
+  // ONLY Reserve is free (₹0). Everything else costs ₹100 each:
+  // Event 1 = ₹100, Event 2 = ₹100, Relay = ₹100, Half Marathon = ₹100
   const totalPrice = useMemo(() => {
     let fee = 0;
     if (event1Id) fee += 100;
     if (event2Id) fee += 100;
+    if (isRelay) fee += 100;
+    if (isHalfMarathon) fee += 100;
     return fee;
-  }, [event1Id, event2Id]);
+  }, [event1Id, event2Id, isRelay, isHalfMarathon]);
 
   const relayQuotaFull = currentRelayCount >= 4;
 
@@ -298,7 +301,7 @@ export default function RegisterClient({ events, collegeName, gender, currentRel
                     />
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                        Include in 4x100m Relay Squad (FREE)
+                        Include in 4x100m Relay Squad (+₹100)
                       </div>
                       <div style={{ fontSize: '0.75rem', color: relayQuotaFull ? 'var(--danger)' : 'var(--text-secondary)' }}>
                         {relayQuotaFull 
@@ -326,7 +329,7 @@ export default function RegisterClient({ events, collegeName, gender, currentRel
                     />
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                        21 km Half Marathon Participant (FREE)
+                        21 km Half Marathon Participant (+₹100)
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                         Open to all university participants with zero event limit restrictions.
@@ -363,19 +366,19 @@ export default function RegisterClient({ events, collegeName, gender, currentRel
                     <span style={{ fontWeight: 600 }}>{event2Id ? '₹100' : '₹0'}</span>
                   </div>
 
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                    <span>Relay Participant:</span>
+                    <span style={{ fontWeight: 600 }}>{isRelay ? '₹100' : '₹0'}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                    <span>Half Marathon:</span>
+                    <span style={{ fontWeight: 600 }}>{isHalfMarathon ? '₹100' : '₹0'}</span>
+                  </div>
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     <span>Reserve Event:</span>
-                    <span>{reserveEventId ? 'FREE' : '-'}</span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                    <span>Relay Participant:</span>
-                    <span>{isRelay ? 'FREE' : '-'}</span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                    <span>Half Marathon:</span>
-                    <span>{isHalfMarathon ? 'FREE' : '-'}</span>
+                    <span style={{ color: 'var(--success)', fontWeight: 700 }}>{reserveEventId ? 'FREE (₹0)' : '-'}</span>
                   </div>
 
                   <div style={{ borderTop: '2px dashed var(--border-color)', margin: '0.25rem 0' }} />

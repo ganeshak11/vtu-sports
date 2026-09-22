@@ -85,8 +85,13 @@ export async function createAthleteRegistration(input: AthleteRegistrationInput)
   }
 
   // 5. Calculate Dynamic Price
-  // Event 1 = ₹100, Event 2 = +₹100, Reserve = ₹0, Relay = ₹0, Half Marathon = ₹0
-  const eventFee = input.event2Id ? 200 : 100;
+  // ONLY Reserve is free (₹0). Everything else costs ₹100 each:
+  // Event 1 = ₹100, Event 2 = ₹100, Relay = ₹100, Half Marathon = ₹100
+  let eventFee = 0;
+  if (input.event1Id) eventFee += 100;
+  if (input.event2Id) eventFee += 100;
+  if (input.isRelay) eventFee += 100;
+  if (input.isHalfMarathon) eventFee += 100;
 
   // 6. Insert Athlete Profile in PAYMENT_PENDING status
   const { data: newProfile, error: profileError } = await supabase
